@@ -1,0 +1,20 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Node (if dev tooling added later)
+node_modules/
+npm-debug.log*
+
+# Build artifacts
+dist/
+build/
+
+# Environment / secrets — NEVER commit Firebase keys
+.env
+.env.local
+*.env

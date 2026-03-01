@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Bikrito-BD — Public archive documenting sexual violence incidents in Bangladesh. View news, verify facts, vote, and submit case updates." />
+  <title>Bikrito-BD | Expose Sexual Violence in Bangladesh</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Firebase v9 compat (CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ======================================================
+       HEADER
+  ====================================================== -->
+  <header class="site-header">
+    <div class="header-inner container">
+      <!-- Logo / branding -->
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">⚖️</span>
+        <div class="brand-text">
+          <span class="brand-title">Bikrito-BD</span>
+          <span class="brand-tagline">Expose. Verify. Demand Justice.</span>
+        </div>
+      </div>
+
+      <!-- Header actions -->
+      <div class="header-actions">
+        <!-- Dark / Light mode toggle -->
+        <button id="themeToggle" class="btn btn-icon" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+
+        <!-- Auth button -->
+        <button id="authBtn" class="btn btn-primary">
+          <i class="fas fa-sign-in-alt"></i>
+          <span>Sign In with Google</span>
+        </button>
+
+        <!-- User info (shown when signed in) -->
+        <div id="userInfo" class="user-info hidden">
+          <img id="userAvatar" src="" alt="User avatar" class="user-avatar" />
+          <span id="userName" class="user-name"></span>
+          <button id="signOutBtn" class="btn btn-outline btn-sm">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================
+       HERO / BANNER
+  ====================================================== -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <h1 class="hero-title">বিকৃত বাংলাদেশ — Bikrito-BD</h1>
+      <p class="hero-subtitle">
+        A public archive exposing sexual violence and rape incidents in Bangladesh.
+        View authentic news, verify facts through community voting, and track justice outcomes.
+      </p>
+      <!-- Add News button (only visible when signed in) -->
+      <button id="addNewsBtn" class="btn btn-primary btn-lg hidden">
+        <i class="fas fa-plus"></i> Submit News Entry
+      </button>
+    </div>
+  </section>
+
+  <!-- ======================================================
+       ANALYTICS SUMMARY
+  ====================================================== -->
+  <section class="analytics-section container" id="analytics">
+    <h2 class="section-title"><i class="fas fa-chart-bar"></i> Overview</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
+        <div class="stat-value" id="totalCases">—</div>
+        <div class="stat-label">Total Cases</div>
+      </div>
+      <div class="stat-card verified">
+        <div class="stat-icon"><i class="fas fa-check-double"></i></div>
+        <div class="stat-value" id="verifiedCases">—</div>
+        <div class="stat-label">Verified Cases</div>
+      </div>
+      <div class="stat-card arrested">
+        <div class="stat-icon"><i class="fas fa-handcuffs"></i></div>
+        <div class="stat-value" id="arrestedCases">—</div>
+        <div class="stat-label">Arrests Made</div>
+      </div>
+      <div class="stat-card convicted">
+        <div class="stat-icon"><i class="fas fa-gavel"></i></div>
+        <div class="stat-value" id="convictedCases">—</div>
+        <div class="stat-label">Convictions</div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Verdict Distribution</h3>
+        <canvas id="verdictChart" width="300" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Arrest Status</h3>
+        <canvas id="arrestChart" width="300" height="220"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================
+       SEARCH / FILTER / SORT BAR
+  ====================================================== -->
+  <section class="controls-section container">
+    <div class="controls-bar">
+      <!-- Search -->
+      <div class="search-wrap">
+        <i class="fas fa-search search-icon"></i>
+        <input
+          type="text"
+          id="searchInput"
+          class="input search-input"
+          placeholder="Search news by title…"
+          aria-label="Search news"
+        />
+      </div>
+
+      <!-- Filter by verification status -->
+      <select id="filterVerification" class="input select-input" aria-label="Filter by verification">
+        <option value="all">All Verification</option>
+        <option value="verified">Verified</option>
+        <option value="partial">Partially Verified</option>
+        <option value="unverified">Unverified</option>
+      </select>
+
+      <!-- Filter by arrest status -->
+      <select id="filterArrest" class="input select-input" aria-label="Filter by arrest status">
+        <option value="all">All Arrest Status</option>
+        <option value="yes">Arrested</option>
+        <option value="partial">Partial Arrest</option>
+        <option value="no">No Arrest</option>
+      </select>
+
+      <!-- Sort -->
+      <select id="sortSelect" class="input select-input" aria-label="Sort news">
+        <option value="latest">Latest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="most_votes">Most Votes</option>
+        <option value="most_verified">Most Verified</option>
+      </select>
+    </div>
+
+    <!-- Trending strip -->
+    <div class="trending-strip" id="trendingStrip">
+      <span class="trending-label"><i class="fas fa-fire"></i> Trending:</span>
+      <div class="trending-items" id="trendingItems"></div>
+    </div>
+  </section>
+
+  <!-- ======================================================
+       NEWS CARDS GRID
+  ====================================================== -->
+  <main class="news-section container" id="newsSection">
+    <!-- Loading state -->
+    <div class="loading-state" id="loadingState">
+      <div class="spinner"></div>
+      <p>Loading news…</p>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state hidden" id="emptyState">
+      <i class="fas fa-inbox fa-3x"></i>
+      <p>No news entries found. Be the first to submit one!</p>
+    </div>
+
+    <!-- News cards rendered here by app.js -->
+    <div class="news-grid" id="newsGrid"></div>
+  </main>
+
+  <!-- ======================================================
+       ADD / EDIT NEWS MODAL
+  ====================================================== -->
+  <div class="modal-overlay hidden" id="newsModalOverlay" role="dialog" aria-modal="true" aria-labelledby="newsModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="newsModalTitle">Submit News Entry</h2>
+        <button class="btn btn-icon modal-close" id="closeNewsModal" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="newsForm" class="modal-form" novalidate>
+        <div class="form-group">
+          <label for="newsTitle" class="form-label">News Title <span class="required">*</span></label>
+          <input type="text" id="newsTitle" class="input" placeholder="Enter news headline" required />
+        </div>
+        <div class="form-group">
+          <label for="newsLink" class="form-label">Source URL <span class="required">*</span></label>
+          <input type="url" id="newsLink" class="input" placeholder="https://example.com/news-article" required />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="cancelNewsModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="newsSubmitBtn">
+            <i class="fas fa-paper-plane"></i> Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       CASE UPDATE MODAL
+  ====================================================== -->
+  <div class="modal-overlay hidden" id="updateModalOverlay" role="dialog" aria-modal="true" aria-labelledby="updateModalTitle">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 class="modal-title" id="updateModalTitle">Submit Case Update</h2>
+        <button class="btn btn-icon modal-close" id="closeUpdateModal" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="updateForm" class="modal-form" novalidate>
+        <input type="hidden" id="updateNewsId" />
+        <input type="hidden" id="updateIndex" value="-1" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="updateArrested" class="form-label">Arrest Status</label>
+            <select id="updateArrested" class="input select-input">
+              <option value="unknown">Unknown</option>
+              <option value="yes">Yes — Arrested</option>
+              <option value="partial">Partial — Some Arrested</option>
+              <option value="no">No — Not Arrested</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="updateNumArrested" class="form-label">Number Arrested</label>
+            <input type="number" id="updateNumArrested" class="input" min="0" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="updateBail" class="form-label">Bail Status</label>
+            <select id="updateBail" class="input select-input">
+              <option value="unknown">Unknown</option>
+              <option value="yes">Yes — Bail Granted</option>
+              <option value="partial">Partial</option>
+              <option value="no">No — Bail Denied</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="updateVerdict" class="form-label">Verdict</label>
+            <select id="updateVerdict" class="input select-input">
+              <option value="pending">Pending</option>
+              <option value="convicted">Convicted</option>
+              <option value="acquitted">Acquitted</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="updateDescription" class="form-label">Case Description <span class="required">*</span></label>
+          <textarea id="updateDescription" class="input textarea" rows="4" placeholder="Describe the case update in detail…" required></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="cancelUpdateModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="updateSubmitBtn">
+            <i class="fas fa-save"></i> Save Update
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       TOAST NOTIFICATIONS
+  ====================================================== -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- ======================================================
+       FOOTER
+  ====================================================== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="brand-icon" aria-hidden="true">⚖️</span>
+        <strong>Bikrito-BD</strong>
+        <span class="footer-tagline">— Expose. Verify. Demand Justice.</span>
+      </div>
+      <p class="footer-desc">
+        A community-driven platform archiving sexual violence incidents in Bangladesh.
+        Together we amplify victims' voices and demand accountability.
+      </p>
+      <div class="footer-links">
+        <a href="https://github.com/Atikulislamx/Bikrito-BD" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+          <i class="fab fa-github"></i> GitHub
+        </a>
+      </div>
+      <p class="footer-copy">&copy; <span id="footerYear"></span> Bikrito-BD. Open source under MIT License.</p>
+    </div>
+  </footer>
+
+  <!-- Firebase & App scripts -->
+  <script src="firebase.js"></script>
+  <script src="components/timeline.js"></script>
+  <script src="components/newsCard.js"></script>
+  <script src="components/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
