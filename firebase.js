@@ -13,12 +13,12 @@
 
 // TODO: Replace these placeholder values with your actual Firebase project config.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBPaG4F1eONKtgmPUjqgclfWKiQDeWwCl4",
+  authDomain: "bikrito-bd.firebaseapp.com",
+  projectId: "bikrito-bd",
+  storageBucket: "bikrito-bd.firebasestorage.app",
+  messagingSenderId: "1772687347",
+  appId: "1:1772687347:web:4fe3d4a5e1fd2fceb38c86"
 };
 
 // Initialize Firebase
